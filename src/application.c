@@ -41,10 +41,11 @@ void event_loop(Program *program, GameState *state) {
 
             // for turns
             case SDL_MOUSEBUTTONDOWN:
-                state->turn.active = true;
+                state->turn.charge = 1;
                 break;
             case SDL_MOUSEBUTTONUP:
-                state->turn.active = false;
+                apply_forces(state);
+                state->turn.charge = 0;
                 break;
 
             default:
@@ -62,15 +63,15 @@ void loop(Program *program, GameState *state) {
         LAST = NOW;
         SDL_UpdateWindowSurface(program->window);
         event_loop(program, state);
-        update(program, state, program->delta);
+        update(program, state);
         draw(program, *state);
         program->delta = ((double)(NOW - LAST)*1000 / SDL_GetPerformanceFrequency());
         SDL_Delay(16);
     }
 }
 
-void update(Program *program, GameState *state, double delta) {
-    game_physics(state);
+void update(Program *program, GameState *state) {
+    game_physics(state, program->delta);
 }
 
 void draw(Program *program, GameState state) {
@@ -78,7 +79,8 @@ void draw(Program *program, GameState state) {
     SDL_RenderClear(program->renderer);
 
     // draw turn indicator
-    if(state.turn.active) {
+    if(state.turn.charge) {
+        program->delta *= 100;
         Player player = state.players[state.turn.player];
         SET_COLOUR(program->renderer, player.colour);
         Vector2 indicator = get_indicator(&state);

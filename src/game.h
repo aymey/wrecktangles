@@ -5,6 +5,7 @@
 #include <SDL2/SDL.h>
 
 #define GRAVITY 9.81/10 + .1
+#define AIR_FRI .1
 #define IND_RAD 100
 
 typedef struct {
@@ -31,8 +32,8 @@ typedef struct {
 
 typedef struct {
     Uint8 player;       // the player whos turn it is
-    bool active;        // is player moving
-    Vector2 velocity;  // the velocity of the turn
+    Uint8 charge;       // the power of the shot (how long they hold it down for)
+    Vector2 velocity;   // the velocity of the turn
 } Turn;
 
 typedef struct {
@@ -43,7 +44,8 @@ typedef struct {
 
 SDL_Rect *Rect2SDL(Rect rect);          // translate Rect to SDL_Rect
 
-void game_physics(GameState *state);    // compute physics like player movement
+void game_physics(GameState *state, double delta);    // compute physics like player movement
+void apply_forces(GameState *state);
 Vector2 get_indicator(GameState *state);// returns the ending coords of indicator (doesnt include player pos offset)
 
 #endif // __GAME_H__
