@@ -64,7 +64,7 @@ void loop(Program *program, GameState *state) {
         SDL_UpdateWindowSurface(program->window);
         event_loop(program, state);
         update(program, state);
-        draw(program, *state);
+        draw(program, state);
         program->delta = ((double)(NOW - LAST)*1000 / SDL_GetPerformanceFrequency());
         SDL_Delay(16);
     }
@@ -74,16 +74,16 @@ void update(Program *program, GameState *state) {
     game_physics(state, program->delta);
 }
 
-void draw(Program *program, GameState state) {
+void draw(Program *program, GameState *state) {
     SDL_SetRenderDrawColor(program->renderer, BG_R, BG_G, BG_B, 255);
     SDL_RenderClear(program->renderer);
 
     // draw turn indicator
-    if(state.turn.charge) {
+    if(state->turn.charge) {
         program->delta *= 100;
-        Player player = state.players[state.turn.player];
+        Player player = state->players[state->turn.player];
         SET_COLOUR(program->renderer, player.colour);
-        Vector2 indicator = get_indicator(&state);
+        Vector2 indicator = get_indicator(state);
 
         Vector2 pos = (Vector2) {
             player.rect.x+(float)player.rect.w/2,
@@ -99,9 +99,9 @@ void draw(Program *program, GameState state) {
     }
 
     // draw players
-    for(int i = 0; i < state.amount; i++) {
-        SET_COLOUR(program->renderer, state.players[i].colour);
-        SDL_RenderFillRect(program->renderer, Rect2SDL(state.players[i].rect));
+    for(int i = 0; i < state->amount; i++) {
+        SET_COLOUR(program->renderer, state->players[i].colour);
+        SDL_RenderFillRect(program->renderer, Rect2SDL(state->players[i].rect));
     }
 
     // SDL_UpdateWindowSurface(program->window);

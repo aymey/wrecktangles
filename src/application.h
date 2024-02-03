@@ -28,6 +28,6 @@ void event_loop(Program *program, GameState *state);
 // loop
 void loop(Program *program, GameState *state);
 void update(Program *program, GameState *state);
-void draw(Program *program, GameState state);
+void draw(Program *program, GameState *state);
 
 #endif // __APPLICATION_H__
