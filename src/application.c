@@ -1,3 +1,4 @@
+#include <SDL2/SDL_timer.h>
 #include <stdbool.h>
 #include "application.h"
 
@@ -14,12 +15,6 @@ int init_app(Program *program) {
     }
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
 
-    // program->surface = SDL_GetWindowSurface(program->window);
-    // if(!program->surface) {
-    //     fprintf(stderr, "Failed to get window surface (\"%s\")", SDL_GetError());
-    //     return EXIT_FAILURE;
-    // }
-
     program->renderer = SDL_CreateRenderer(program->window, -1, SDL_RENDERER_ACCELERATED);
     if(!program->renderer) {
         fprintf(stderr, "Failed to create renderer (\"%s\")", SDL_GetError());
@@ -33,7 +28,7 @@ int init_app(Program *program) {
 }
 
 // program event loop
-void event_loop(Program *program) {
+void event_loop(Program *program, GameState *state) {
     SDL_Event event;
 
     while(SDL_PollEvent(&event)) {
@@ -44,37 +39,67 @@ void event_loop(Program *program) {
                 exit(0);
                 break;
 
+            // for turns
+            case SDL_MOUSEBUTTONDOWN:
+                state->turn.active = true;
+                break;
+            case SDL_MOUSEBUTTONUP:
+                state->turn.active = false;
+                break;
+
             default:
                 break;
         }
     }
 }
 
-void loop(Program *program, GameState state) {
+void loop(Program *program, GameState *state) {
+    state->players[0].rect.y =2;
+    Uint64 NOW = SDL_GetPerformanceCounter();
+    Uint64 LAST = 0;
+
     while(true) {
+        LAST = NOW;
         SDL_UpdateWindowSurface(program->window);
-        event_loop(program);
-        update(program, 1./60.);
-        draw(program, state);
+        event_loop(program, state);
+        update(program, state, program->delta);
+        draw(program, *state);
+        program->delta = ((double)(NOW - LAST)*1000 / SDL_GetPerformanceFrequency());
         SDL_Delay(16);
     }
 }
 
-void update(Program *program, double delta) {
-
+void update(Program *program, GameState *state, double delta) {
+    game_physics(state);
 }
 
 void draw(Program *program, GameState state) {
     SDL_SetRenderDrawColor(program->renderer, BG_R, BG_G, BG_B, 255);
     SDL_RenderClear(program->renderer);
 
+    // draw turn indicator
+    if(state.turn.active) {
+        Player player = state.players[state.turn.player];
+        SET_COLOUR(program->renderer, player.colour);
+        Vector2 indicator = get_indicator(&state);
+
+        Vector2 pos = (Vector2) {
+            player.rect.x+(float)player.rect.w/2,
+            player.rect.y+(float)player.rect.h/2
+        };
+
+        SDL_RenderDrawLine(
+                program->renderer,
+                pos.i,
+                pos.j,
+                pos.i+indicator.i,
+                pos.j+indicator.j);
+    }
+
+    // draw players
     for(int i = 0; i < state.amount; i++) {
-        SDL_SetRenderDrawColor(program->renderer,
-                state.players[i].colour.r,
-                state.players[i].colour.g,
-                state.players[i].colour.b,
-                255);
-        SDL_RenderFillRect(program->renderer, &state.players[i].rect);
+        SET_COLOUR(program->renderer, state.players[i].colour);
+        SDL_RenderFillRect(program->renderer, Rect2SDL(state.players[i].rect));
     }
 
     // SDL_UpdateWindowSurface(program->window);

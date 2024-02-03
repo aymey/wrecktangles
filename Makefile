@@ -1,5 +1,5 @@
 CC = clang
-LIBS = -lSDL2 -lGL -lX11 -lpthread -lXrandr -lXi -ldl
+LIBS = -lSDL2 -lGL -lX11 -lpthread -lXrandr -lXi -ldl -lm
 CFLAGS_DEBUG = -Wall -Wextra -ggdb $(LIBS)
 CFLAGS_RELEASE = -O3 -w $(LIBS)
 TARGET = wrecktangles
